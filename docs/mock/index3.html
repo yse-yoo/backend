@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartPOS - Sidebar Blue</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-50 min-h-screen antialiased text-slate-900 flex flex-col md:flex-row">
+
+    <aside class="w-full md:w-60 bg-white text-slate-800 md:h-screen sticky top-0 flex flex-col shadow-xl z-50">
+        <div class="p-5 flex items-center justify-between md:justify-start border-b border-slate-800">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-sky-600 text-white rounded-lg flex items-center justify-center font-bold">S</div>
+                <span class="text-lg font-bold tracking-tight">SmartPOS</span>
+            </div>
+            <span id="clock" class="md:hidden text-xs font-mono text-slate-400">--:--:--</span>
+        </div>
+
+        <nav class="flex-1 p-3 flex md:flex-col gap-1 overflow-x-auto md:overflow-y-auto whitespace-nowrap">
+            <button onclick="switchView(this, 'pos')"
+                class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold bg-sky-600 text-white w-full transition-all">
+                <span class="text-lg">🛒</span> <span>レジ</span>
+            </button>
+            <button onclick="switchView(this, 'history')"
+                class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-slate-400 hover:bg-sky-800 hover:text-white w-full transition-all">
+                <span class="text-lg">📋</span> <span>履歴</span>
+            </button>
+            <button onclick="switchView(this, 'products')"
+                class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-slate-400 hover:bg-sky-800 hover:text-white w-full transition-all">
+                <span class="text-lg">📦</span> <span>商品</span>
+            </button>
+            <button onclick="switchView(this, 'sales')"
+                class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-slate-400 hover:bg-sky-800 hover:text-white w-full transition-all">
+                <span class="text-lg">📈</span> <span>売上</span>
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-slate-800 hidden md:block">
+            <div id="clock-desktop" class="text-center py-2 text-sm font-mono text-slate-400 mb-3">--:--:--</div>
+            <button onclick="switchView(this, 'settings')"
+                class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-400 hover:bg-sky-800 hover:text-white w-full mb-2">
+                <span class="text-base">⚙️</span> <span>設定</span>
+            </button>
+            <button onclick="handleLogin()"
+                class="w-full py-2 rounded-lg bg-sky-800 hover:bg-sky-700 text-white text-xs font-bold transition-colors">管理者ログイン</button>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-4 md:p-6 h-screen overflow-y-auto">
+
+        <div id="view-pos" class="view-section h-full max-w-6xl mx-auto">
+            <div class="grid grid-cols-1 xl:grid-cols-[1fr,360px] h-full gap-4">
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-4">
+                    <div id="category-tabs" class="flex flex-wrap gap-2">
+                        <button onclick="filterCat(this,'全て')"
+                            class="tab-btn active px-5 py-2 rounded-lg border border-sky-600 bg-sky-600 text-white text-sm font-bold shadow-sm shadow-sky-100">全て</button>
+                        <button onclick="filterCat(this,'フード')"
+                            class="tab-btn px-5 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 text-sm font-bold hover:bg-sky-50 transition-colors">フード</button>
+                        <button onclick="filterCat(this,'ドリンク')"
+                            class="tab-btn px-5 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 text-sm font-bold hover:bg-sky-50 transition-colors">ドリンク</button>
+                        <button onclick="filterCat(this,'トッピング')"
+                            class="tab-btn px-5 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 text-sm font-bold hover:bg-sky-50 transition-colors">トッピング</button>
+                        <button onclick="filterCat(this,'有料袋')"
+                            class="tab-btn px-5 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 text-sm font-bold hover:bg-sky-50 transition-colors">有料袋</button>
+                        <button
+                            class="tab-btn px-5 py-2 rounded-lg border border-slate-200 bg-sky-200 text-slate-600 text-sm font-bold hover:bg-sky-50 transition-colors">商品コード</button>
+                        <input type="text" class="border px-2 border-slate-200 rounded">
+                    </div>
+                    <div id="product-grid"
+                        class="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto p-0.5">
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <span class="font-bold text-sm text-slate-700">注文内容</span>
+                        <span id="receipt-num"
+                            class="text-[10px] font-bold bg-white text-slate-400 px-2 py-0.5 rounded border border-slate-200 uppercase">#0001</span>
+                    </div>
+
+                    <div id="receipt-items" class="flex-1 p-4 overflow-y-auto space-y-2">
+                        <div class="text-slate-300 text-sm text-center py-10">商品を選択</div>
+                    </div>
+
+                    <div class="p-4 bg-slate-50 border-t border-slate-200 space-y-2">
+                        <div class="flex justify-between text-xs text-slate-500 font-medium">
+                            <span>小計</span><span id="subtotal">¥0</span>
+                        </div>
+                        <div
+                            class="flex justify-between text-2xl font-bold pt-2 text-slate-900 border-t border-slate-200">
+                            <span>合計</span><span id="total" class="text-sky-600">¥0</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 grid grid-cols-2 gap-2 bg-white">
+                        <button onclick="clearOrder()"
+                            class="p-3 rounded-xl border border-slate-200 text-sm font-bold hover:bg-sky-50 text-slate-500 transition-colors">クリア</button>
+                        <button onclick="confirmPay('会計')"
+                            class="p-3 bg-sky-600 text-white rounded-xl text-sm font-bold hover:bg-sky-700 shadow-lg shadow-sky-100 transition-all active:scale-95">会計する</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-history" class="view-section hidden h-full flex items-center justify-center">
+            <div class="bg-white p-12 rounded-2xl shadow-sm border border-slate-200 text-center">
+                <div class="text-4xl mb-4">📋</div>
+                <h2 class="text-lg font-bold text-slate-800 mb-2">会計履歴</h2>
+                <p class="text-sm text-slate-400">履歴データはまだありません</p>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="js/products.js"></script>
+    <script src="js/app3.js"></script>
+</body>
+
+</html>
