@@ -5,7 +5,7 @@ const allProducts = [
     { id: 2, name: 'イチゴカスタード', price: 620, cat: 'フード', icon: '🍓' },
     { id: 3, name: '塩キャラメルアーモンド', price: 550, cat: 'フード', icon: '🍯' },
     { id: 4, name: '抹茶あずき白玉', price: 650, cat: 'フード', icon: '🍵' },
-    
+
     // 【フード - お食事クレープ】
     { id: 5, name: 'ハムエッグチーズ', price: 680, cat: 'フード', icon: '🥓' },
     { id: 6, name: 'ツナサラダマヨネーズ', price: 600, cat: 'フード', icon: '🐟' },

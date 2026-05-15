@@ -56,9 +56,9 @@ final class ProductRepository
     {
         $stmt = $this->pdo->prepare(
             'INSERT INTO products
-                (category_id, name, price, tax_rate, tax_type, icon, stock_quantity, is_active, display_order)
+                (category_id, name, price, tax_rate, tax_type, icon, image_path, stock_quantity, is_active, display_order)
              VALUES
-                (:category_id, :name, :price, :tax_rate, :tax_type, :icon, :stock_quantity, :is_active, :display_order)'
+                (:category_id, :name, :price, :tax_rate, :tax_type, :icon, :image_path, :stock_quantity, :is_active, :display_order)'
         );
         $stmt->execute($params);
 
@@ -77,6 +77,7 @@ final class ProductRepository
                  tax_rate = :tax_rate,
                  tax_type = :tax_type,
                  icon = :icon,
+                 image_path = :image_path,
                  stock_quantity = :stock_quantity,
                  is_active = :is_active,
                  display_order = :display_order
@@ -112,6 +113,7 @@ final class ProductRepository
                     p.tax_rate,
                     p.tax_type,
                     p.icon,
+                    p.image_path,
                     p.stock_quantity,
                     p.is_active,
                     p.display_order,

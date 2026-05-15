@@ -86,6 +86,10 @@ final class SaleController
             $errors['cash_received'] = 'Cash received must be numeric or null.';
         }
 
+        if (isset($body['tax_rate']) && (!is_numeric($body['tax_rate']) || !in_array((float)$body['tax_rate'], [8.0, 10.0], true))) {
+            $errors['tax_rate'] = 'Tax rate must be 8 or 10.';
+        }
+
         return $errors;
     }
 }

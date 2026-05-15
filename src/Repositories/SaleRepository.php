@@ -94,7 +94,8 @@ final class SaleRepository
         $this->pdo->beginTransaction();
 
         try {
-            $items = $this->buildItems($body['items']);
+            $taxRate = isset($body['tax_rate']) && $body['tax_rate'] !== null ? (float)$body['tax_rate'] : null;
+            $items = $this->buildItems($body['items'], $taxRate);
             $subtotal = array_sum(array_column($items, 'subtotal'));
             $taxTotal = array_sum(array_column($items, 'tax_amount'));
             $total = $subtotal + $taxTotal;
@@ -150,7 +151,7 @@ final class SaleRepository
         }
     }
 
-    private function buildItems(array $requestItems): array
+    private function buildItems(array $requestItems, ?float $taxRateOverride = null): array
     {
         $quantities = [];
 
@@ -182,7 +183,7 @@ final class SaleRepository
 
             $product = $products[$productId];
             $unitPrice = (int)$product['price'];
-            $taxRate = (float)$product['tax_rate'];
+            $taxRate = $taxRateOverride ?? (float)$product['tax_rate'];
             $subtotal = $unitPrice * $quantity;
             $taxAmount = (int)round($subtotal * ($taxRate / 100));
             $total = $subtotal + $taxAmount;
