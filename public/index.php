@@ -4,6 +4,7 @@ use App\Controllers\CategoryController;
 use App\Controllers\AuthController;
 use App\Controllers\ProductController;
 use App\Controllers\SaleController;
+use App\Controllers\SquareController;
 use App\Lib\Database;
 use App\Lib\Http;
 use App\Lib\Router;
@@ -41,7 +42,9 @@ $pdo = Database::pdo();
 $auth = new AuthController(new StaffRepository($pdo));
 $categories = new CategoryController(new CategoryRepository($pdo));
 $products = new ProductController(new ProductRepository($pdo));
-$sales = new SaleController(new SaleRepository($pdo));
+$saleRepository = new SaleRepository($pdo);
+$sales = new SaleController($saleRepository);
+$square = new SquareController($saleRepository);
 $router = new Router();
 
 $admin = static function (callable $handler) use ($auth): callable {

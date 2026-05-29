@@ -37,7 +37,7 @@ final class SaleRepository
         $offset = max((int)($filters['offset'] ?? 0), 0);
 
         $sql = 'SELECT id, receipt_number, sold_at, subtotal, tax_total, total,
-                       payment_method, cash_received, change_amount, status, note,
+                       payment_method, square_payment_id, cash_received, change_amount, status, note,
                        created_at, updated_at
                 FROM sales';
 
@@ -64,7 +64,7 @@ final class SaleRepository
     {
         $stmt = $this->pdo->prepare(
             'SELECT id, receipt_number, sold_at, subtotal, tax_total, total,
-                    payment_method, cash_received, change_amount, status, note,
+                    payment_method, square_payment_id, cash_received, change_amount, status, note,
                     created_at, updated_at
              FROM sales
              WHERE id = :id'
@@ -109,11 +109,17 @@ final class SaleRepository
             $changeAmount = $paymentMethod === 'cash' && $cashReceived !== null ? $cashReceived - $total : null;
             $soldAt = isset($body['sold_at']) && $body['sold_at'] !== '' ? (string)$body['sold_at'] : date('Y-m-d H:i:s');
 
+            $squarePaymentId = isset($body['square_payment_id']) && $body['square_payment_id'] !== ''
+                ? (string)$body['square_payment_id']
+                : null;
+
             $stmt = $this->pdo->prepare(
                 'INSERT INTO sales
-                    (sold_at, subtotal, tax_total, total, payment_method, cash_received, change_amount, status, note)
+                    (sold_at, subtotal, tax_total, total, payment_method, square_payment_id,
+                     cash_received, change_amount, status, note)
                  VALUES
-                    (:sold_at, :subtotal, :tax_total, :total, :payment_method, :cash_received, :change_amount, :status, :note)'
+                    (:sold_at, :subtotal, :tax_total, :total, :payment_method, :square_payment_id,
+                     :cash_received, :change_amount, :status, :note)'
             );
             $stmt->execute([
                 ':sold_at' => $soldAt,
@@ -121,6 +127,7 @@ final class SaleRepository
                 ':tax_total' => $taxTotal,
                 ':total' => $total,
                 ':payment_method' => $paymentMethod,
+                ':square_payment_id' => $squarePaymentId,
                 ':cash_received' => $cashReceived,
                 ':change_amount' => $changeAmount,
                 ':status' => 'completed',

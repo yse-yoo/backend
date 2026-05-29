@@ -34,4 +34,6 @@ $router->delete('/api/products/{id}', $admin([$products, 'destroy']));
 // Sales
 $router->get('/api/sales', $admin([$sales, 'index']));
 $router->get('/api/sales/{id}', $admin([$sales, 'show']));
-$router->post('/api/sales', [$sales, 'store']);
+
+// Payments（全決済の入口）
+$router->post('/api/payments/square/checkout', [$square, 'checkout']);

@@ -6,35 +6,13 @@ use App\Lib\Http;
 use App\Repositories\SaleRepository;
 use InvalidArgumentException;
 
-final class SaleController
+final class SquareController
 {
     public function __construct(private readonly SaleRepository $sales)
     {
     }
 
-    public function index(): void
-    {
-        Http::success($this->sales->findAll([
-            'date_from' => $_GET['date_from'] ?? null,
-            'date_to' => $_GET['date_to'] ?? null,
-            'status' => $_GET['status'] ?? null,
-            'limit' => $_GET['limit'] ?? 50,
-            'offset' => $_GET['offset'] ?? 0,
-        ]));
-    }
-
-    public function show(int $id): void
-    {
-        $sale = $this->sales->findWithItems($id);
-
-        if ($sale === null) {
-            Http::error('Sale not found.', 404);
-        }
-
-        Http::success($sale);
-    }
-
-    public function store(): void
+    public function checkout(): void
     {
         $body = Http::jsonBody();
         $errors = $this->validate($body);
@@ -42,6 +20,16 @@ final class SaleController
         if ($errors !== []) {
             Http::error('Validation failed.', 422, $errors);
         }
+
+        $paymentMethod = $body['payment_method'] ?? 'cash';
+
+        if ($paymentMethod === 'square') {
+            $body['square_payment_id'] = 'mock_ckout_' . bin2hex(random_bytes(8));
+        }
+
+        // 疑似API処理: Square 端末との通信遅延をサーバー側でシミュレート
+        $delayMs = (int)($_ENV['PAYMENT_PROCESSING_DELAY'] ?? 2000);
+        usleep($delayMs * 1000);
 
         try {
             Http::success($this->sales->create($body), 201);
@@ -80,12 +68,6 @@ final class SaleController
         $paymentMethod = $body['payment_method'] ?? 'cash';
         if (!in_array($paymentMethod, ['cash', 'card', 'qr', 'other', 'square'], true)) {
             $errors['payment_method'] = 'Payment method must be cash, card, qr, other, or square.';
-        }
-
-        if (isset($body['square_payment_id']) && $body['square_payment_id'] !== null) {
-            if (!is_string($body['square_payment_id']) || strlen($body['square_payment_id']) > 255) {
-                $errors['square_payment_id'] = 'Square payment ID must be a string of at most 255 characters.';
-            }
         }
 
         if (isset($body['cash_received']) && $body['cash_received'] !== null && !is_numeric($body['cash_received'])) {
