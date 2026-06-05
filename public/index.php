@@ -2,13 +2,18 @@
 
 use App\Controllers\CategoryController;
 use App\Controllers\AuthController;
+use App\Controllers\CheckoutRequestController;
+use App\Controllers\OrderDraftController;
 use App\Controllers\ProductController;
 use App\Controllers\SaleController;
+use App\Controllers\SalesAnalyticsController;
 use App\Controllers\SquareController;
 use App\Lib\Database;
 use App\Lib\Http;
 use App\Lib\Router;
 use App\Repositories\CategoryRepository;
+use App\Repositories\CheckoutRequestRepository;
+use App\Repositories\OrderDraftRepository;
 use App\Repositories\ProductRepository;
 use App\Repositories\SaleRepository;
 use App\Repositories\StaffRepository;
@@ -43,8 +48,12 @@ $auth = new AuthController(new StaffRepository($pdo));
 $categories = new CategoryController(new CategoryRepository($pdo));
 $products = new ProductController(new ProductRepository($pdo));
 $saleRepository = new SaleRepository($pdo);
+$orderDraftRepository = new OrderDraftRepository();
 $sales = new SaleController($saleRepository);
 $square = new SquareController($saleRepository);
+$analytics = new SalesAnalyticsController($saleRepository);
+$checkoutRequests = new CheckoutRequestController(new CheckoutRequestRepository($pdo, $saleRepository, $orderDraftRepository));
+$orderDrafts = new OrderDraftController($orderDraftRepository);
 $router = new Router();
 
 $admin = static function (callable $handler) use ($auth): callable {

@@ -9,6 +9,8 @@
  *   $categories App\Controllers\CategoryController
  *   $products App\Controllers\ProductController
  *   $sales    App\Controllers\SaleController
+ *   $checkoutRequests App\Controllers\CheckoutRequestController
+ *   $orderDrafts App\Controllers\OrderDraftController
  *   $admin    callable – middleware that requires admin authentication
  */
 
@@ -33,7 +35,20 @@ $router->delete('/api/products/{id}', $admin([$products, 'destroy']));
 
 // Sales
 $router->get('/api/sales', $admin([$sales, 'index']));
+$router->get('/api/sales/analytics', $admin([$analytics, 'index']));
 $router->get('/api/sales/{id}', $admin([$sales, 'show']));
 
 // Payments（全決済の入口）
 $router->post('/api/payments/square/checkout', [$square, 'checkout']);
+
+// Checkout requests
+$router->get('/api/checkout-requests/current', [$checkoutRequests, 'current']);
+$router->get('/api/checkout-requests/{checkout_id}', [$checkoutRequests, 'show']);
+$router->post('/api/checkout-requests', $admin([$checkoutRequests, 'store']));
+$router->post('/api/checkout-requests/{checkout_id}/complete', [$checkoutRequests, 'complete']);
+$router->delete('/api/checkout-requests/{checkout_id}', $admin([$checkoutRequests, 'cancel']));
+
+// Current order draft
+$router->get('/api/order-draft/current', [$orderDrafts, 'current']);
+$router->put('/api/order-draft/current', $admin([$orderDrafts, 'save']));
+$router->delete('/api/order-draft/current', $admin([$orderDrafts, 'clear']));

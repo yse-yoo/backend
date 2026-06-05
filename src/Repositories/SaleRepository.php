@@ -33,19 +33,25 @@ final class SaleRepository
             $params[':status'] = $filters['status'];
         }
 
-        $limit = min(max((int)($filters['limit'] ?? 50), 1), 200);
+        $limit  = min(max((int)($filters['limit']  ?? 20), 1), 100);
         $offset = max((int)($filters['offset'] ?? 0), 0);
+
+        $where = $conditions !== [] ? ' WHERE ' . implode(' AND ', $conditions) : '';
+
+        $countStmt = $this->pdo->prepare('SELECT COUNT(*) FROM sales' . $where);
+        foreach ($params as $key => $value) {
+            $countStmt->bindValue($key, $value);
+        }
+        $countStmt->execute();
+        $total = (int)$countStmt->fetchColumn();
 
         $sql = 'SELECT id, receipt_number, sold_at, subtotal, tax_total, total,
                        payment_method, square_payment_id, cash_received, change_amount, status, note,
-                       created_at, updated_at
-                FROM sales';
-
-        if ($conditions !== []) {
-            $sql .= ' WHERE ' . implode(' AND ', $conditions);
-        }
-
-        $sql .= ' ORDER BY sold_at DESC, id DESC LIMIT :limit OFFSET :offset';
+                       created_at, updated_at,
+                       COALESCE((SELECT SUM(quantity) FROM sale_items WHERE sale_id = sales.id), 0) AS item_count
+                FROM sales' . $where . '
+                ORDER BY sold_at DESC, id DESC
+                LIMIT :limit OFFSET :offset';
 
         $stmt = $this->pdo->prepare($sql);
 
@@ -57,7 +63,10 @@ final class SaleRepository
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
 
-        return $stmt->fetchAll();
+        return [
+            'items' => $stmt->fetchAll(),
+            'total' => $total,
+        ];
     }
 
     public function findWithItems(int $id): ?array
@@ -236,5 +245,45 @@ final class SaleRepository
                 ':total' => $item['total'],
             ]);
         }
+    }
+
+    public function findAnalytics(string $period, string $dateFrom, string $dateTo): array
+    {
+        if ($period === 'monthly') {
+            $sql = "SELECT DATE_FORMAT(sold_at, '%Y-%m') AS period,
+                           SUM(total) AS total_amount,
+                           COUNT(*) AS sale_count
+                    FROM sales
+                    WHERE status = 'completed'
+                      AND DATE(sold_at) >= :date_from
+                      AND DATE(sold_at) <= :date_to
+                    GROUP BY DATE_FORMAT(sold_at, '%Y-%m')
+                    ORDER BY period ASC";
+        } elseif ($period === 'weekly') {
+            $sql = "SELECT DATE_FORMAT(DATE_SUB(sold_at, INTERVAL WEEKDAY(sold_at) DAY), '%Y-%m-%d') AS period,
+                           SUM(total) AS total_amount,
+                           COUNT(*) AS sale_count
+                    FROM sales
+                    WHERE status = 'completed'
+                      AND DATE(sold_at) >= :date_from
+                      AND DATE(sold_at) <= :date_to
+                    GROUP BY DATE_FORMAT(DATE_SUB(sold_at, INTERVAL WEEKDAY(sold_at) DAY), '%Y-%m-%d')
+                    ORDER BY period ASC";
+        } else {
+            $sql = "SELECT DATE(sold_at) AS period,
+                           SUM(total) AS total_amount,
+                           COUNT(*) AS sale_count
+                    FROM sales
+                    WHERE status = 'completed'
+                      AND DATE(sold_at) >= :date_from
+                      AND DATE(sold_at) <= :date_to
+                    GROUP BY DATE(sold_at)
+                    ORDER BY period ASC";
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
+
+        return $stmt->fetchAll();
     }
 }
