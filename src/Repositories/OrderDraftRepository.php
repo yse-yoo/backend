@@ -5,6 +5,7 @@ namespace App\Repositories;
 final class OrderDraftRepository
 {
     private const CACHE_KEY = 'order_draft';
+    private const TTL_SECONDS = 4 * 3600; // 4時間：営業セッション1日分
 
     public function current(): ?array
     {
@@ -33,7 +34,7 @@ final class OrderDraftRepository
             'updated_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
         ];
 
-        apcu_store(self::CACHE_KEY, $draft);
+        apcu_store(self::CACHE_KEY, $draft, self::TTL_SECONDS);
 
         return $draft;
     }

@@ -18,6 +18,9 @@ final class CheckoutRequestRepository
 
     public function create(array $body): array
     {
+        // Ensure only one pending checkout exists at a time
+        $this->pdo->exec("UPDATE checkout_requests SET status = 'canceled' WHERE status = 'pending'");
+
         $id = 'chk_' . bin2hex(random_bytes(12));
         $items = $body['items'];
         $paymentMethod = (string)($body['payment_method'] ?? 'cash');
@@ -83,6 +86,7 @@ final class CheckoutRequestRepository
         }
 
         if ($request['status'] === 'completed') {
+            $this->orderDrafts?->clear();
             return $request;
         }
 

@@ -14,11 +14,13 @@ final class CheckoutRequestController
 
     public function current(): void
     {
+        session_write_close();
         Http::success($this->checkoutRequests->current());
     }
 
     public function show(string $id): void
     {
+        session_write_close();
         $request = $this->checkoutRequests->find($id);
 
         if ($request === null) {
@@ -43,8 +45,13 @@ final class CheckoutRequestController
     public function complete(string $id): void
     {
         try {
-            $delayMs = (int)($_ENV['CHECKOUT_REQUEST_PROCESSING_DELAY'] ?? 5000);
-            usleep($delayMs * 1000);
+            $request = $this->checkoutRequests->find($id);
+            $isCash = $request !== null && $request['payment_method'] === 'cash';
+
+            if (!$isCash) {
+                $delayMs = (int)($_ENV['CHECKOUT_REQUEST_PROCESSING_DELAY'] ?? 5000);
+                usleep($delayMs * 1000);
+            }
 
             Http::success($this->checkoutRequests->complete($id));
         } catch (RuntimeException $exception) {
