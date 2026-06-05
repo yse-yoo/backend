@@ -49,6 +49,7 @@ $router->post('/api/checkout-requests/{checkout_id}/complete', [$checkoutRequest
 $router->delete('/api/checkout-requests/{checkout_id}', $admin([$checkoutRequests, 'cancel']));
 
 // Current order draft
+$router->get('/api/order-draft/stream', [$orderDrafts, 'stream']);
 $router->get('/api/order-draft/current', [$orderDrafts, 'current']);
 $router->put('/api/order-draft/current', $admin([$orderDrafts, 'save']));
 $router->delete('/api/order-draft/current', $admin([$orderDrafts, 'clear']));

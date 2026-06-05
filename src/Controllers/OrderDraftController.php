@@ -34,6 +34,45 @@ final class OrderDraftController
         Http::success(null);
     }
 
+    public function stream(): void
+    {
+        // セッションロックを早期解放して他リクエストをブロックしない
+        session_write_close();
+
+        header('Content-Type: text/event-stream');
+        header('Cache-Control: no-cache');
+        header('X-Accel-Buffering: no');
+
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        $send = function (?array $data): void {
+            echo 'data: ' . json_encode(['success' => true, 'data' => $data], JSON_THROW_ON_ERROR) . "\n\n";
+            flush();
+        };
+
+        $lastJson = null;
+        $deadline = time() + 55;
+
+        // 接続直後に現在の状態を送信
+        $current = $this->orderDrafts->current();
+        $send($current);
+        $lastJson = json_encode($current);
+
+        while (time() < $deadline && !connection_aborted()) {
+            usleep(500000); // 500ms
+
+            $current = $this->orderDrafts->current();
+            $json = json_encode($current);
+
+            if ($json !== $lastJson) {
+                $send($current);
+                $lastJson = $json;
+            }
+        }
+    }
+
     /**
      * @return array<string, string>
      */
